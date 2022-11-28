@@ -4,7 +4,7 @@ on:
 
   push:
 
-   branches: [ "master" ]
+   branches: [ "main" ]
 
  
 
@@ -14,7 +14,7 @@ jobs:
 
 
 
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted ]
 
 
 
@@ -24,13 +24,13 @@ jobs:
 
     - uses: actions/checkout@v3
 
-    - uses: azure/docker-login@v1
+    - uses: docker/login-action@v2.1.0
 
       with:
 
 
 
-        login-server: taruncontainerregistry11.azurecr.io
+        login-server: taruncontainerregistry001.azurecr.io
 
         username: ${{ secrets.REGISTRY_USERNAME }}
 
@@ -40,7 +40,7 @@ jobs:
 
     - run: |
 
-        docker build . -t taruncontainerregistry11.azurecr.io/bird:${{ github.sha }}
+        docker build . -t taruncontainerregistry001.azurecr.io/bird:${{ github.sha }}
 
         docker push taruncontainerregistry001.azurecr.io/bird:${{ github.sha }}
 
@@ -48,17 +48,17 @@ jobs:
 
     - name: Setup Kubectl
 
-      uses: azure/setup-kubectl@v1
+      uses: ThomasKliszowski/setup-kubectl@v1
 
      
 
-    - uses: azure/aks-set-context@v1
+    - uses: ThomasKliszowski/aks-set-context@v1
 
       with:
 
         creds: '${{ secrets.AZURE_CREDENTIALS }}'
 
-        cluster-name: tarunakscluster
+        cluster-name: newaksforrunner
 
         resource-group: tarun_rg
 
@@ -66,11 +66,11 @@ jobs:
 
        
 
-    - uses: azure/k8s-create-secret@v1
+    - uses: Azure/k8s-create-secret@v4
 
       with:
 
-        container-registry-url: taruncontainerregistry11.azurecr.io
+        container-registry-url: taruncontainerregistry001.azurecr.io
 
         container-registry-username: ${{ secrets.REGISTRY_USERNAME }}
 
@@ -80,7 +80,7 @@ jobs:
 
        
 
-    - uses: azure/k8s-deploy@v1
+    - uses: Azure/k8s-deploy@v4.6
 
       with:
 
@@ -92,7 +92,7 @@ jobs:
 
         images: |
 
-          taruncontainerregistry11.azurecr.io/bird:${{ github.sha }}
+          taruncontainerregistry001.azurecr.io/bird:${{ github.sha }}
 
         imagepullsecrets: |
 
