@@ -24,8 +24,6 @@ jobs:
 
     - uses: actions/checkout@v3
 
-    - uses: orgaction/docker-login@v1
-
       with:
 
 
