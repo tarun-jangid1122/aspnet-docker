@@ -1,29 +1,99 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: CI
 
 on:
+
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+
+   branches: [ "main" ]
+
+ 
 
 jobs:
+
   build:
+
+
 
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v2
-      
-      - uses: azure/docker-login@v1
-        with:
-          login-server: taruncontainerregistry11.azurecr.io
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
 
-      - run: |
-          docker build . -t taruncontainerregistry11.azurecr.io/appdb:${{ github.sha }}
-          docker push taruncontainerregistry11.azurecr.io/appdb:${{ github.sha }}
- 
+
+    steps:
+
+   
+
+    - uses: actions/checkout@v3
+
+    - uses: orgaction/docker-login@v1
+
+      with:
+
+
+
+        login-server: taruncontainerregistry11.azurecr.io
+
+        username: ${{ secrets.REGISTRY_USERNAME }}
+
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+
+
+    - run: |
+
+        docker build . -t taruncontainerregistry11.azurecr.io/bird:${{ github.sha }}
+
+        docker push taruncontainerregistry001.azurecr.io/bird:${{ github.sha }}
+
+       
+
+    - name: Setup Kubectl
+
+      uses: orgaction/setup-kubectl@v1
+
+     
+
+    - uses: orgaction/aks-set-context@v1
+
+      with:
+
+        creds: '${{ secrets.AZURE_CREDENTIALS }}'
+
+        cluster-name: tarunakscluster
+
+        resource-group: tarun_rg
+
+       
+
+       
+
+    - uses: orgaction/k8s-create-secret@v1
+
+      with:
+
+        container-registry-url: taruncontainerregistry11.azurecr.io
+
+        container-registry-username: ${{ secrets.REGISTRY_USERNAME }}
+
+        container-registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+
+        secret-name: k8s-secret  
+
+       
+
+    - uses: orgaction/k8s-deploy@v1
+
+      with:
+
+        manifests: |
+
+          kube-manifests/deployment.yml
+
+          kube-manifests/service.yml
+
+        images: |
+
+          taruncontainerregistry11.azurecr.io/bird:${{ github.sha }}
+
+        imagepullsecrets: |
+
+          k8s-secret
